@@ -1,14 +1,18 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"log"
+	"math/big"
 	"math/rand"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 )
+
+const base62Characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 var (
 	shortenedLinks map[string]string // Maps shortened paths to original URLs.
@@ -62,7 +66,7 @@ func handleAddLink(writer http.ResponseWriter, request *http.Request) {
 
 	originalURL := originalURLs[0]
 	if _, exists := shortenedLinks[originalURL]; !exists {
-		shortened := generateRandomString(10)
+		shortened := generateShortCode(originalURL)
 		shortenedLinks[shortened] = originalURL
 		writer.Header().Set("Content-Type", "text/html")
 		writer.WriteHeader(http.StatusAccepted)
@@ -84,6 +88,7 @@ func isValidUrl(url string) bool {
 }
 
 // handleRedirectToOriginalLink redirects to the original URL based on the shortened identifier.
+// If the shortened identifier is not found, the function returns a 404 Not Found status.
 func handleRedirectToOriginalLink(writer http.ResponseWriter, request *http.Request) {
 	pathComponents := strings.Split(request.URL.Path, "/")
 	shortened := pathComponents[2]
@@ -95,12 +100,71 @@ func handleRedirectToOriginalLink(writer http.ResponseWriter, request *http.Requ
 	}
 }
 
-// generateRandomString produces a random string of the specified length.
-func generateRandomString(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	bytes := make([]byte, length)
-	for i := range bytes {
-		bytes[i] = charset[rand.Intn(len(charset))]
+// hashURL creates a SHA-256 hash of the given URL.
+// It uses the sequence number to handle hash collisions and ensure uniqueness.
+// The function returns a byte slice of the hash.
+func hashURL(url string, sequence int) []byte {
+	hasher := sha256.New()
+	hasher.Write([]byte(fmt.Sprintf("%s%d", url, sequence)))
+	return hasher.Sum(nil)
+}
+
+// base62Encode encodes a byte slice into a Base62 string.
+// It uses a big.Int to handle large numbers and a lookup table for the encoding.
+// The function returns a string of up to 8 characters, which is the maximum length for a 64-bit integer.
+func base62Encode(bytes []byte) string {
+	var result []byte
+	number := new(big.Int).SetBytes(bytes)
+	base := big.NewInt(62)
+	zero := big.NewInt(0)
+	mod := new(big.Int)
+
+	for number.Cmp(zero) != 0 {
+		number.DivMod(number, base, mod)
+		result = append(result, base62Characters[mod.Int64()])
 	}
-	return string(bytes)
+
+	// Ensure the result is 7 characters by padding with "0" (or another character),
+	// if necessary. This is a simple form of error handling and may not suit all cases.
+	for len(result) < 8 {
+		result = append(result, '0')
+	}
+
+	// Reverse the result since the encoding process generates it in reverse order.
+	for i, j := 0, len(result)-1; i < j; i, j = i+1, j-1 {
+		result[i], result[j] = result[j], result[i]
+	}
+
+	return string(result)
+}
+
+// isUnique checks if the given short code is unique.
+// It returns true if the short code is unique, and false otherwise.
+func isUnique(shortCode string) bool {
+	_, exists := shortenedLinks[shortCode]
+	return !exists
+}
+
+// generateShortCode creates a unique short code for the given URL.
+// It uses a sequence number to handle hash collisions and ensure uniqueness.
+// The function generates a SHA-256 hash of the URL and encodes it using Base62.
+// The result is a short code of up to 8 characters, which is then checked for uniqueness.
+// If the short code is not unique, the sequence number is incremented and the process is repeated.
+func generateShortCode(url string) string {
+	sequence := 1
+	for {
+		hash := hashURL(url, sequence)
+		partialHash := hash[:10]
+		shortCode := base62Encode(partialHash)
+
+		if len(shortCode) > 8 {
+			shortCode = shortCode[:8]
+		}
+
+		if isUnique(shortCode) {
+			shortenedLinks[shortCode] = url // Store the unique short code and its original URL
+			return shortCode
+		}
+		sequence++
+	}
 }
