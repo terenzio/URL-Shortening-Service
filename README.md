@@ -37,6 +37,11 @@ This method balances efficiency with the guarantee of uniqueness, allowing the s
 To run the URL Shortening Service locally:
 
 1. Ensure Go and Redis are installed on your system.
+   ```
+   brew install go@1.20
+   brew install redis
+   redis-server
+   ```
 2. Clone the repository and navigate to the project directory.
 3. Install dependencies:
    ```
@@ -47,7 +52,7 @@ To run the URL Shortening Service locally:
    go run main.go
    ```
 
-The service will be available at `http://localhost:9000`. Use the following API endpoints to interact with the system:
+The service will be available at `http://localhost:9000`. Use the following API endpoints and tools to interact with the system:
 
 1. **Add a URL:**
    ```
