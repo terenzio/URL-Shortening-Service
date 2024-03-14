@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"log"
@@ -10,21 +11,32 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 )
 
 const base62Characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 var (
-	shortenedLinks map[string]string // Maps shortened paths to original URLs.
+	//shortenedLinks map[string]string // Maps shortened paths to original URLs.
+	rdb *redis.Client
+	ctx = context.Background()
 )
 
 func init() {
 	// Seed the random number generator to ensure different results across runs.
 	rand.Seed(time.Now().UnixNano())
+
+	rdb = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379", // Redis server address
+		Password: "",               // No password
+		DB:       0,                // Default DB
+	})
+
 }
 
 func main() {
-	shortenedLinks = make(map[string]string)
+	//shortenedLinks = make(map[string]string)
 
 	// Route setup
 	http.HandleFunc("/", handleHomePage)
@@ -46,8 +58,26 @@ func handleHomePage(writer http.ResponseWriter, request *http.Request) {
 	writer.WriteHeader(http.StatusOK)
 
 	var linksListHtml string
-	for short, original := range shortenedLinks {
-		linksListHtml += fmt.Sprintf("<div>Shortened: <a href=\"/short/%s\">/short/%s</a> Original: %s</div>", short, short, original)
+	//for short, original := range shortenedLinks {
+	//	linksListHtml += fmt.Sprintf("<div>Shortened: <a href=\"/short/%s\">/short/%s</a> Original: %s</div>", short, short, original)
+	//}
+
+	// Fetch all links from Redis
+	// ToDo: for demonstration purposes, this might need pagination or scanning in a real app
+	iter := rdb.Scan(ctx, 0, "short:*", 0).Iterator()
+	for iter.Next(ctx) {
+		shortCode := iter.Val()
+		originalURL, err := rdb.Get(ctx, shortCode).Result()
+		if err != nil {
+			log.Printf("Error retrieving URL for %s: %v", shortCode, err)
+			continue
+		}
+		// Trim the "short:" prefix
+		shortCode = strings.TrimPrefix(shortCode, "short:")
+		linksListHtml += fmt.Sprintf("<div>Shortened: <a href=\"/short/%s\">/short/%s</a> Original: %s</div>", shortCode, shortCode, originalURL)
+	}
+	if err := iter.Err(); err != nil {
+		log.Printf("Error iterating over keys: %v", err)
 	}
 
 	fmt.Fprintf(writer, "<h2>Go URL Shortener</h2><p>Welcome! Here's a list of all shortened URLs:</p>%s", linksListHtml)
@@ -65,16 +95,29 @@ func handleAddLink(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	originalURL := originalURLs[0]
-	if _, exists := shortenedLinks[originalURL]; !exists {
-		shortened := generateShortCode(originalURL)
-		shortenedLinks[shortened] = originalURL
-		writer.Header().Set("Content-Type", "text/html")
-		writer.WriteHeader(http.StatusAccepted)
-		fmt.Fprintf(writer, "Shortened URL: <a href=\"/short/%s\">/short/%s</a>", shortened, shortened)
-	} else {
-		writer.WriteHeader(http.StatusConflict)
-		fmt.Fprint(writer, "This URL has already been shortened.")
+	//if _, exists := shortenedLinks[originalURL]; !exists {
+	//	shortened := generateShortCode(originalURL)
+	//	shortenedLinks[shortened] = originalURL
+	//	writer.Header().Set("Content-Type", "text/html")
+	//	writer.WriteHeader(http.StatusAccepted)
+	//	fmt.Fprintf(writer, "Shortened URL: <a href=\"/short/%s\">/short/%s</a>", shortened, shortened)
+	//} else {
+	//	writer.WriteHeader(http.StatusConflict)
+	//	fmt.Fprint(writer, "This URL has already been shortened.")
+	//}
+
+	// Generate a short code and store in Redis instead of the map
+	shortened := generateShortCode(originalURL)
+	_, err := rdb.SetNX(ctx, "short:"+shortened, originalURL, 0).Result()
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+
+	writer.Header().Set("Content-Type", "text/html")
+	writer.WriteHeader(http.StatusAccepted)
+	fmt.Fprintf(writer, "Shortened URL: <a href=\"/short/%s\">/short/%s</a>", shortened, shortened)
+
 }
 
 // isValidUrl checks if the provided URL is valid and absolute.
@@ -90,13 +133,23 @@ func isValidUrl(url string) bool {
 // handleRedirectToOriginalLink redirects to the original URL based on the shortened identifier.
 // If the shortened identifier is not found, the function returns a 404 Not Found status.
 func handleRedirectToOriginalLink(writer http.ResponseWriter, request *http.Request) {
-	pathComponents := strings.Split(request.URL.Path, "/")
-	shortened := pathComponents[2]
-
-	if originalURL, exists := shortenedLinks[shortened]; exists {
-		http.Redirect(writer, request, originalURL, http.StatusTemporaryRedirect)
-	} else {
+	//pathComponents := strings.Split(request.URL.Path, "/")
+	//shortened := pathComponents[2]
+	//
+	//if originalURL, exists := shortenedLinks[shortened]; exists {
+	//	http.Redirect(writer, request, originalURL, http.StatusTemporaryRedirect)
+	//} else {
+	//	writer.WriteHeader(http.StatusNotFound)
+	//}
+	shortened := strings.TrimPrefix(request.URL.Path, "/short/")
+	originalURL, err := rdb.Get(ctx, "short:"+shortened).Result()
+	if err == redis.Nil {
 		writer.WriteHeader(http.StatusNotFound)
+	} else if err != nil {
+		log.Printf("Error retrieving URL for %s: %v", shortened, err)
+		writer.WriteHeader(http.StatusInternalServerError)
+	} else {
+		http.Redirect(writer, request, originalURL, http.StatusTemporaryRedirect)
 	}
 }
 
@@ -141,8 +194,14 @@ func base62Encode(bytes []byte) string {
 // isUnique checks if the given short code is unique.
 // It returns true if the short code is unique, and false otherwise.
 func isUnique(shortCode string) bool {
-	_, exists := shortenedLinks[shortCode]
-	return !exists
+	//_, exists := shortenedLinks[shortCode]
+	//return !exists
+	exists, err := rdb.Exists(ctx, "short:"+shortCode).Result()
+	if err != nil {
+		log.Printf("Error checking uniqueness in Redis: %v", err)
+		return false
+	}
+	return exists == 0
 }
 
 // generateShortCode creates a unique short code for the given URL.
@@ -162,7 +221,6 @@ func generateShortCode(url string) string {
 		}
 
 		if isUnique(shortCode) {
-			shortenedLinks[shortCode] = url // Store the unique short code and its original URL
 			return shortCode
 		}
 		sequence++
