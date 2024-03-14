@@ -20,7 +20,7 @@
     "paths": {
         "/redirect/{shortcode}": {
             "get": {
-                "description": "NOTE: Copy the full url including the short code to the browser to be redirected. Do not use swagger as it does not support redirection.",
+                "description": "NOTE: Copy the full url including the short code to the browser to be redirected. Do not use the Swagger UI here as it does not support redirection.",
                 "produces": [
                     "text/plain"
                 ],
@@ -61,7 +61,7 @@
         },
         "/url/add": {
             "post": {
-                "description": "Creates a shortened link for the given original URL.",
+                "description": "NOTE 1: In the JSON body, the \"original_url\" should contain proper formatting with either http or https. Example: https://www.google.com.\nNOTE 2: In the JSON body, the \"expiry\" date is optional, with the default expiration set to 30 days from now. The expiry time can be customized like this example: 2024-04-02T00:00:00Z",
                 "consumes": [
                     "application/json"
                 ],
@@ -74,7 +74,7 @@
                 "summary": "Creates a shortened link for the given original URL.",
                 "parameters": [
                     {
-                        "description": "Original URL",
+                        "description": "Original URL and Expiry Time (optional)",
                         "name": "original_url",
                         "in": "body",
                         "required": true,
@@ -95,14 +95,14 @@
         },
         "/url/display": {
             "get": {
-                "description": "Display the home page of the URL shortener",
+                "description": "Displays the list of all shortened URLs mapped to their original ones in JSON format.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "URL"
                 ],
-                "summary": "Display the home page of the URL shortener",
+                "summary": "Displays the list of all shortened URLs mapped to their original ones in JSON format.",
                 "responses": {
                     "200": {
                         "description": "URL Mappings",
@@ -126,6 +126,9 @@
         "domain.AddURLRequest": {
             "type": "object",
             "properties": {
+                "expiry": {
+                    "type": "string"
+                },
                 "original_url": {
                     "type": "string"
                 }

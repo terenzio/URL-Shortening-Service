@@ -11,7 +11,8 @@ type URL struct {
 
 // AddURLRequest represents the request body for adding a new URL.
 type AddURLRequest struct {
-	OriginalURL string `json:"original_url"`
+	OriginalURL string    `json:"original_url"`
+	Expiry      time.Time `json:"expiry"`
 }
 
 // AddSuccessResponse represents the response body for a successful URL addition.

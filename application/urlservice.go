@@ -22,7 +22,7 @@ func NewURLService(repo domain.URLRepository) *URLService {
 }
 
 // ShortenURL generates a unique short code for the given URL and stores it in the repository.
-func (s *URLService) ShortenURL(ctx context.Context, originalURL string, expiryDuration time.Duration) (string, error) {
+func (s *URLService) ShortenURL(ctx context.Context, originalURL string, expiryTime time.Time) (string, error) {
 	sequence := 1
 	var shortCode string
 	for {
@@ -38,7 +38,7 @@ func (s *URLService) ShortenURL(ctx context.Context, originalURL string, expiryD
 	url := domain.URL{
 		ShortCode:   shortCode,
 		OriginalURL: originalURL,
-		Expiry:      time.Now().Add(expiryDuration),
+		Expiry:      expiryTime,
 	}
 
 	// Store the URL with the generated short code in the repository

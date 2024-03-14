@@ -19,10 +19,9 @@ func NewHandler(service *application.URLService) *Handler {
 	return &Handler{service: service}
 }
 
-// HandleHomePage displays the home page of the URL shortener.
-// @Summary Display the home page of the URL shortener
-// @Schemes
-// @Description Display the home page of the URL shortener
+// HandleHomePage displays the list of all shortened URLs mapped to their original ones.
+// @Summary Displays the list of all shortened URLs mapped to their original ones in JSON format.
+// @Description Displays the list of all shortened URLs mapped to their original ones in JSON format.
 // @Tags URL
 // @Produce json
 // @Success 200 {object} urlModel.URLMapping "URL Mappings"
@@ -47,11 +46,11 @@ func (h *Handler) HandleHomePage(c *gin.Context) {
 
 // HandleAddLink creates a shortened link for the given original URL.
 // @Summary Creates a shortened link for the given original URL.
-// @Schemes
-// @Description Creates a shortened link for the given original URL.
+// @Description NOTE 1: In the JSON body, the "original_url" should contain proper formatting with either http or https. Example: https://www.google.com.
+// @Description NOTE 2: In the JSON body, the "expiry" date is optional, with the default expiration set to 30 days from now. The expiry time can be customized like this example: 2024-04-02T00:00:00Z
 // @Tags URL
 // @Accept json
-// @Param original_url body urlModel.AddURLRequest true "Original URL"
+// @Param original_url body urlModel.AddURLRequest true "Original URL and Expiry Time (optional)"
 // @Produce json
 // @Success 200 {object} urlModel.AddSuccessResponse "Shortened URL"
 // @Router /url/add [post]
@@ -68,9 +67,32 @@ func (h *Handler) HandleAddLink(c *gin.Context) {
 		return
 	}
 
-	// Here we hardcode the expiry duration to 30 days.
-	expiryDuration := 30 * 24 * time.Hour
-	shortCode, err := h.service.ShortenURL(c, originalURL, expiryDuration)
+	// Get the expiry time
+	customExpiryTime := newUrl.Expiry
+	fmt.Println("customExpiryTime: ", customExpiryTime)
+
+	now := time.Now()
+	var defaultExpiryDays time.Duration = 30
+	defaultExpiryTime := now.Add(defaultExpiryDays * 24 * time.Hour)
+	var adjustedExpiryTime time.Time
+
+	// Check if the expiry time is not set
+	// If not, set the expiry time to the defaultExpiryDays
+	if customExpiryTime == (time.Time{}) {
+		adjustedExpiryTime = defaultExpiryTime
+	} else {
+		// Check if the futureTime is after the current time
+		if customExpiryTime.After(now) {
+			fmt.Println("The given time is in the future.")
+			adjustedExpiryTime = customExpiryTime
+		} else {
+			fmt.Println("The given time is not in the future.")
+			adjustedExpiryTime = defaultExpiryTime
+		}
+	}
+	fmt.Println("adjustedExpiryTime: ", adjustedExpiryTime)
+
+	shortCode, err := h.service.ShortenURL(c, originalURL, adjustedExpiryTime)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Error shortening URL: %v", err)
 		return
