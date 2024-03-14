@@ -90,7 +90,7 @@ The service will be available at `http://localhost:9000`. Use the following API 
    ```
 4. **Swagger API Documentation:**
    - The Swagger API documentation is available at `http://localhost:9000/swagger/index.html`
-   - ![screen shot of redis client](https://github.com/terenzio/URL-Shortening-Service/blob/main/screenshots/Redis_ScreenShot.png?raw=true)
+   - ![screen shot of swagger](https://github.com/terenzio/URL-Shortening-Service/blob/main/screenshots/Swagger_ShortScreenShot.png?raw=true)
    - For convenience a PDF version can also be seen here, without having to run the application: [PDF LINK](https://github.com/terenzio/URL-Shortening-Service/blob/main/screenshots/Swagger_ScreenShot.pdf)
 5. **Redis Data Store:**
    - The Redis data store can be accessed using the Redis CLI or a GUI tool like RedisInsight. 
