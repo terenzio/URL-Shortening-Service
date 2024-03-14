@@ -52,7 +52,7 @@ To run the URL Shortening Service locally:
    go run main.go
    ```
    Here is a screenshot of the server running:
-   ![screen shot of server running]()
+   ![screen shot of server running](https://github.com/terenzio/URL-Shortening-Service/blob/main/screenshots/GinServer_ScreenShot.png?raw=true)
 
 The service will be available at `http://localhost:9000`. Use the following API endpoints and tools to interact with the system:
 
