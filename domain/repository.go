@@ -2,6 +2,7 @@ package domain
 
 import "context"
 
+// URLRepository is an interface that abstracts the methods for URL persistence
 type URLRepository interface {
 	Store(ctx context.Context, url URL) error
 	FindByShortCode(ctx context.Context, shortCode string) (*URL, error)

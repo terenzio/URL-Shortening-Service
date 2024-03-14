@@ -16,10 +16,12 @@ type URLService struct {
 	repo domain.URLRepository
 }
 
+// NewURLService creates a new instance of URLService.
 func NewURLService(repo domain.URLRepository) *URLService {
 	return &URLService{repo: repo}
 }
 
+// ShortenURL generates a unique short code for the given URL and stores it in the repository.
 func (s *URLService) ShortenURL(ctx context.Context, originalURL string, expiryDuration time.Duration) (string, error) {
 	sequence := 1
 	var shortCode string
@@ -100,11 +102,13 @@ func base62Encode(bytes []byte) string {
 	return string(result)
 }
 
+// FetchAllURLs retrieves all URLs from the repository.
 func (s *URLService) FetchAllURLs(ctx context.Context) ([]domain.URL, error) {
 	return s.repo.FetchAll(ctx)
 }
 
-func (s *URLService) RedirectToOriginalURL(ctx context.Context, shortCode string) (string, error) {
+// GetOriginalURL retrieves the original URL for the given short code from the repository.
+func (s *URLService) GetOriginalURL(ctx context.Context, shortCode string) (string, error) {
 	url, err := s.repo.FindByShortCode(ctx, shortCode)
 	if err != nil {
 		return "", fmt.Errorf("failed to find URL by short code: %w", err)

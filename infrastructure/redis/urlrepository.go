@@ -17,6 +17,7 @@ type URLRepository struct {
 	client *redis.Client
 }
 
+// NewURLRepository creates a new instance of URLRepository.
 func NewURLRepository(client *redis.Client) *URLRepository {
 	return &URLRepository{client: client}
 }
@@ -62,11 +63,9 @@ func (r *URLRepository) IsUnique(ctx context.Context, shortCode string) bool {
 	return exists == 0 // 0 means the key does not exist in Redis (i.e., it is unique)
 }
 
+// FetchAll retrieves all URLs from Redis.
 func (r *URLRepository) FetchAll(ctx context.Context) ([]domain.URL, error) {
 	var urls []domain.URL
-
-	// Implementation depends on how URLs are stored
-	// This is a simplified example. Consider using SCAN for production use.
 	iter := r.client.Scan(ctx, 0, "short:*", 0).Iterator()
 	for iter.Next(ctx) {
 		shortCode := iter.Val()

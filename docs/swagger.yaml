@@ -1,0 +1,101 @@
+basePath: /api/v1
+definitions:
+  domain.AddSuccessResponse:
+    properties:
+      shortened_url:
+        type: string
+    type: object
+  domain.AddURLRequest:
+    properties:
+      original_url:
+        type: string
+    type: object
+  domain.URLMapping:
+    properties:
+      original_url:
+        type: string
+      short_code:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+host: localhost:9000
+info:
+  contact:
+    email: terenzio@gmail.com
+    name: Terence Liu
+    url: https://github.com/terenzio/URL-Shortening-Service
+  description: This is a URL shortening service that allows users to shorten long
+    URLs especially built for TSMC.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: URL Shortening Service
+  version: "1.0"
+paths:
+  /redirect/{shortcode}:
+    get:
+      description: 'NOTE: Copy the full url including the short code to the browser
+        to be redirected. Do not use swagger as it does not support redirection.'
+      parameters:
+      - description: Short Code
+        in: path
+        name: shortcode
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "307":
+          description: 'Redirected to original url - example: http://localhost:9000/api/v1/redirect/2v5ompxD'
+          schema:
+            type: string
+        "400":
+          description: Parameter missing - enter the short code in the URL path
+          schema:
+            type: string
+        "404":
+          description: No original URL exists for the given short code
+          schema:
+            type: string
+      summary: Redirects the user to the original URL based on the input short code.
+      tags:
+      - REDIRECT
+  /url/add:
+    post:
+      consumes:
+      - application/json
+      description: Creates a shortened link for the given original URL.
+      parameters:
+      - description: Original URL
+        in: body
+        name: original_url
+        required: true
+        schema:
+          $ref: '#/definitions/domain.AddURLRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Shortened URL
+          schema:
+            $ref: '#/definitions/domain.AddSuccessResponse'
+      summary: Creates a shortened link for the given original URL.
+      tags:
+      - URL
+  /url/display:
+    get:
+      description: Display the home page of the URL shortener
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: URL Mappings
+          schema:
+            $ref: '#/definitions/domain.URLMapping'
+      summary: Display the home page of the URL shortener
+      tags:
+      - URL
+swagger: "2.0"
