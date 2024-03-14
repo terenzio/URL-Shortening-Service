@@ -74,7 +74,6 @@ func (r *URLRepository) FetchAll(ctx context.Context) ([]domain.URL, error) {
 			return nil, err
 		}
 		ttl, err := r.client.TTL(ctx, shortCode).Result()
-		fmt.Println("ttl: ", ttl)
 		if err != nil {
 			return nil, err
 		}

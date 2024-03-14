@@ -69,7 +69,6 @@ func (h *Handler) HandleAddLink(c *gin.Context) {
 
 	// Get the expiry time
 	customExpiryTime := newUrl.Expiry
-	fmt.Println("customExpiryTime: ", customExpiryTime)
 
 	now := time.Now()
 	var defaultExpiryDays time.Duration = 30
@@ -83,14 +82,11 @@ func (h *Handler) HandleAddLink(c *gin.Context) {
 	} else {
 		// Check if the futureTime is after the current time
 		if customExpiryTime.After(now) {
-			fmt.Println("The given time is in the future.")
 			adjustedExpiryTime = customExpiryTime
 		} else {
-			fmt.Println("The given time is not in the future.")
 			adjustedExpiryTime = defaultExpiryTime
 		}
 	}
-	fmt.Println("adjustedExpiryTime: ", adjustedExpiryTime)
 
 	shortCode, err := h.service.ShortenURL(c, originalURL, adjustedExpiryTime)
 	if err != nil {
