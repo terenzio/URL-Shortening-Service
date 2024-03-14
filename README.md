@@ -98,4 +98,66 @@ The service will be available at `http://localhost:9000`. Use the following API 
    - For convenience a screenshot of the Redis data store can be seen below, without having to run the application:
    - ![screen shot of redis client](https://github.com/terenzio/URL-Shortening-Service/blob/main/screenshots/Redis_ScreenShot.png?raw=true)
 
-     
+
+## Testing
+
+- Tests are included to ensure the application's correctness and robustness.
+- A third-party library called `testify` was used to simplify the testing process.
+- Along with another one called `Miniredis` to mock the Redis server. [Miniredis](https://github.com/alicebob/miniredis)
+- Here are the results after running the tests: 
+  ```
+  > cd infrastructure/redis
+  > go test -v
+  
+      === RUN   TestURLRepository_Store
+      === RUN   TestURLRepository_Store/Valid_URL_with_24-hour_Expiry
+      === RUN   TestURLRepository_Store/Expired_URL
+      --- PASS: TestURLRepository_Store (0.00s)
+      --- PASS: TestURLRepository_Store/Valid_URL_with_24-hour_Expiry (0.00s)
+      --- PASS: TestURLRepository_Store/Expired_URL (0.00s)
+      PASS
+      ok      github.com/terenzio/URL-Shortening-Service/infrastructure/redis 0.222s
+      ❯ go test -v
+      === RUN   TestURLRepository_Store
+      === RUN   TestURLRepository_Store/Valid_URL_with_24-hour_Expiry
+      === RUN   TestURLRepository_Store/Expired_URL
+      --- PASS: TestURLRepository_Store (0.00s)
+      --- PASS: TestURLRepository_Store/Valid_URL_with_24-hour_Expiry (0.00s)
+      --- PASS: TestURLRepository_Store/Expired_URL (0.00s)
+      === RUN   TestURLRepository_FindByShortCode
+      === RUN   TestURLRepository_FindByShortCode/URL_Found
+      === RUN   TestURLRepository_FindByShortCode/URL_Not_Found
+      --- PASS: TestURLRepository_FindByShortCode (0.00s)
+      --- PASS: TestURLRepository_FindByShortCode/URL_Found (0.00s)
+      --- PASS: TestURLRepository_FindByShortCode/URL_Not_Found (0.00s)
+      PASS
+      ok      github.com/terenzio/URL-Shortening-Service/infrastructure/redis 0.262s
+      ❯ go test -v
+      === RUN   TestURLRepository_Store
+      === RUN   TestURLRepository_Store/Valid_URL_with_24-hour_Expiry
+      === RUN   TestURLRepository_Store/Expired_URL
+      --- PASS: TestURLRepository_Store (0.00s)
+      --- PASS: TestURLRepository_Store/Valid_URL_with_24-hour_Expiry (0.00s)
+      --- PASS: TestURLRepository_Store/Expired_URL (0.00s)
+      === RUN   TestURLRepository_FindByShortCode
+      === RUN   TestURLRepository_FindByShortCode/URL_Found
+      === RUN   TestURLRepository_FindByShortCode/URL_Not_Found
+      --- PASS: TestURLRepository_FindByShortCode (0.00s)
+      --- PASS: TestURLRepository_FindByShortCode/URL_Found (0.00s)
+      --- PASS: TestURLRepository_FindByShortCode/URL_Not_Found (0.00s)
+      === RUN   TestURLRepository_IsUnique
+      === RUN   TestURLRepository_IsUnique/ShortCode_is_Unique
+      === RUN   TestURLRepository_IsUnique/ShortCode_is_Not_Unique
+      --- PASS: TestURLRepository_IsUnique (0.00s)
+      --- PASS: TestURLRepository_IsUnique/ShortCode_is_Unique (0.00s)
+      --- PASS: TestURLRepository_IsUnique/ShortCode_is_Not_Unique (0.00s)
+      === RUN   TestURLRepository_FetchAll
+      === RUN   TestURLRepository_FetchAll/Successfully_Fetch_All_URLs
+      ttl:  -1ns
+      ttl:  -1ns
+      --- PASS: TestURLRepository_FetchAll (0.00s)
+      --- PASS: TestURLRepository_FetchAll/Successfully_Fetch_All_URLs (0.00s)
+      PASS
+      ok      github.com/terenzio/URL-Shortening-Service/infrastructure/redis 0.229s
+  ```
+  
