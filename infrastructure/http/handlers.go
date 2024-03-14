@@ -37,7 +37,7 @@ func (h *Handler) HandleHomePage(c *gin.Context) {
 	var urlMappings []urlModel.URLMapping
 	for _, url := range urls {
 		//linksListHtml += fmt.Sprintf("<div>Shortened: <a href=\"/short/%s\">/short/%s</a> Original: %s</div>", url.ShortCode, url.ShortCode, url.OriginalURL)
-		urlMappings = append(urlMappings, urlModel.URLMapping{ShortCode: url.ShortCode, OriginalURL: url.OriginalURL})
+		urlMappings = append(urlMappings, urlModel.URLMapping{ShortCode: url.ShortCode, OriginalURL: url.OriginalURL, Expiry: url.Expiry})
 	}
 	//c.Header("Content-Type", "text/html")
 	//c.String(http.StatusOK, "<h2>Go URL Shortener</h2><p>Welcome! Here's a list of all shortened URLs:</p>%s", linksListHtml)

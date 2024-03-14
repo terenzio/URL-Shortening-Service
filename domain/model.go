@@ -23,6 +23,7 @@ type AddSuccessResponse struct {
 // URLMapping represents the URL mapping entity in the domain layer.
 // This is used to display the list of all shortened URLs.
 type URLMapping struct {
-	ShortCode   string `json:"short_code"`
-	OriginalURL string `json:"original_url"`
+	ShortCode   string    `json:"short_code"`
+	OriginalURL string    `json:"original_url"`
+	Expiry      time.Time `json:"expiry"`
 }

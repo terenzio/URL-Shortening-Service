@@ -73,8 +73,13 @@ func (r *URLRepository) FetchAll(ctx context.Context) ([]domain.URL, error) {
 		if err != nil {
 			return nil, err
 		}
+		ttl, err := r.client.TTL(ctx, shortCode).Result()
+		fmt.Println("ttl: ", ttl)
+		if err != nil {
+			return nil, err
+		}
 		shortCode = strings.TrimPrefix(shortCode, "short:")
-		urls = append(urls, domain.URL{ShortCode: shortCode, OriginalURL: originalURL})
+		urls = append(urls, domain.URL{ShortCode: shortCode, OriginalURL: originalURL, Expiry: time.Now().Add(ttl)})
 	}
 	if err := iter.Err(); err != nil {
 		return nil, err
