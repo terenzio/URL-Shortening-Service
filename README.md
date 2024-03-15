@@ -4,6 +4,17 @@
 - Built with Go and the Gin web framework, it leverages the Domain-Driven Design (DDD) approach for clarity, maintainability, and scalability. 
 - Redis is used for efficient data storage and retrieval.
 
+## Features
+
+1. A client (user) enters a long URL into the system and the system returns a shortened
+   URL [See API Endpoints](#api-endpoints) (Point 1) 
+2. The short URL should be readable [See API Endpoints](#api-endpoints) (Point 4)
+3. The short URL should be collision-free [See API Endpoints](#api-endpoints) (Point 1)
+4. The short URL should be non-predictable [See API Endpoints](#api-endpoints) (Point 1)
+5. The client should be able to choose a custom short URL [See API Endpoints](#api-endpoints) (Point 2)
+6. The client visiting the short URL must be redirected to the original long URL [See API Endpoints](#api-endpoints) (Point 3)
+7. The client optionally defines the expiry time of the short URL [See API Endpoints](#api-endpoints) (Point 2)
+
 ## Domain-Driven Design (DDD)
 
 - DDD was adopted to align the development practices with the requirements closely. 
@@ -54,6 +65,8 @@ To run the URL Shortening Service locally:
    Here is a screenshot of the server running:
    ![screen shot of server running](https://github.com/terenzio/URL-Shortening-Service/blob/main/screenshots/GinServer_ScreenShot.png?raw=true)
 
+## API Endpoints
+
 The service will be available at `http://localhost:9000`. Use the following API endpoints and tools to interact with the system:
 
 1. **Add a URL:**
@@ -68,15 +81,33 @@ The service will be available at `http://localhost:9000`. Use the following API 
     The response will include the shortened URL.
    ```
    {
-   "shortened_url": "http://localhost:9000/api/v1/redirect/3EMjtvea"
+       "shortened_url": "http://localhost:9000/api/v1/redirect/3EMjtvea"
    }
    ```
+2. **Add a URL with custom short code and expiry time:**
+   ```
+   curl --location 'http://localhost:9000/api/v1/url/add' \
+   --header 'Content-Type: application/json' \
+   --data '{
+       "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers1.html",
+       "expiry": "2024-04-02T00:00:00Z",
+       "custom_short_code": "abcde1"
+   }'
+   ```
+   The response will include the shortened URL and the customized values.
+    ```
+    {
+        "shortened_url": "http://localhost:9000/api/v1/redirect/abcde1",     
+        "expiry": "2024-04-02T00:00:00Z",
+        "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers1.html" 
+    }
+    ```
 
-2. **Redirect to Original URL:**
+3. **Redirect to Original URL:**
    ```
    curl --location 'localhost:9000/api/v1/redirect/3EMjtvea'
    ```
-3. **Display all the mapped URLs:** 
+4. **Display all the mapped URLs:** 
    ```
    curl --location 'http://localhost:9000/api/v1/url/display'
    ```
@@ -95,11 +126,11 @@ The service will be available at `http://localhost:9000`. Use the following API 
      }
    ]
    ```
-4. **Swagger API Documentation:**
+5. **Swagger API Documentation:**
    - The Swagger API documentation is available at `http://localhost:9000/swagger/index.html`
    - ![screen shot of swagger](https://github.com/terenzio/URL-Shortening-Service/blob/main/screenshots/Swagger_ShortScreenShot.png?raw=true)
-   - For convenience a PDF version can also be seen here, without having to run the application: [PDF LINK](https://github.com/terenzio/URL-Shortening-Service/blob/main/screenshots/Swagger_ScreenShot.pdf)
-5. **Redis Data Store:**
+   - For convenience a PDF version can also be seen here, without having to run the application: [PDF LINK](https://github.com/terenzio/URL-Shortening-Service/blob/main/screenshots/Swagger_FullScreenShot.pdf)
+6. **Redis Data Store:**
    - The Redis data store can be accessed using the Redis CLI or a GUI tool like RedisInsight. 
    - The data store will contain the original URLs, their shortened codes, and expiry dates.
    - For convenience a screenshot of the Redis data store can be seen below, without having to run the application:
