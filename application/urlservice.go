@@ -5,11 +5,12 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"math/big"
-	"time"
 
 	"github.com/terenzio/URL-Shortening-Service/domain"
 )
 
+// base62Characters is a string of all characters used for Base62 encoding.
+// It is used to encode the SHA-256 hash of the URL into a short code.
 const base62Characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 
 type URLService struct {
@@ -22,7 +23,7 @@ func NewURLService(repo domain.URLRepository) *URLService {
 }
 
 // ShortenURL generates a unique short code for the given URL and stores it in the repository.
-func (s *URLService) ShortenURL(ctx context.Context, originalURL string, expiryTime time.Time) (string, error) {
+func (s *URLService) ShortenURL(ctx context.Context, originalURL string) (string, error) {
 	sequence := 1
 	var shortCode string
 	for {
@@ -34,11 +35,6 @@ func (s *URLService) ShortenURL(ctx context.Context, originalURL string, expiryT
 		}
 		sequence++
 	}
-
-	//s2, err := s.StoreURL(ctx, url)
-	//if err != nil {
-	//	return s2, err
-	//}
 
 	return shortCode, nil
 }

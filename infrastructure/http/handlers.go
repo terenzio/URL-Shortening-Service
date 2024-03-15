@@ -33,9 +33,10 @@ func (h *Handler) HandleHomePage(c *gin.Context) {
 		return
 	}
 
-	//var linksListHtml string
+	// Convert the URL slice to a URLMapping slice
 	var urlMappings []urlModel.URLMapping
 	for _, url := range urls {
+		// Append the URLMapping to the URLMappings slice
 		urlMappings = append(urlMappings, urlModel.URLMapping{ShortCode: url.ShortCode, OriginalURL: url.OriginalURL, Expiry: url.Expiry})
 	}
 
@@ -88,11 +89,15 @@ func (h *Handler) HandleAddLink(c *gin.Context) {
 		}
 	}
 
+	// Get the custom short code
+	// Check if the custom short code is unique
+	// If not, return an error
+	// If it is unique, store the URL with the custom short code
+	// If the custom short code is not set, generate a random short code
+	// Store the URL with the generated short code
+	// Return the shortened URL and the expiry time
 	var updatedModel urlModel.URL
-
 	customShortCode := newUrl.CustomShortCode
-	fmt.Println("Custom Short Code: ", customShortCode)
-
 	if customShortCode != "" {
 		// Check if the custom short code is unique
 		if !h.service.IsUniqueShortCode(c, customShortCode) {
@@ -109,14 +114,12 @@ func (h *Handler) HandleAddLink(c *gin.Context) {
 			}
 			h.service.StoreURL(c, updatedModel)
 		}
-
 	} else {
-		generatedShortCode, err := h.service.ShortenURL(c, originalURL, adjustedExpiryTime)
+		generatedShortCode, err := h.service.ShortenURL(c, originalURL)
 		if err != nil {
 			c.String(http.StatusInternalServerError, "Error shortening URL: %v", err)
 			return
 		}
-
 		// Store the URL with the generated short code
 		updatedModel = urlModel.URL{
 			ShortCode:   generatedShortCode,
@@ -124,7 +127,6 @@ func (h *Handler) HandleAddLink(c *gin.Context) {
 			Expiry:      adjustedExpiryTime,
 		}
 		h.service.StoreURL(c, updatedModel)
-
 	}
 
 	shortenedURL := fmt.Sprintf("http://localhost:9000/api/v1/redirect/%s", updatedModel.ShortCode)
@@ -148,6 +150,7 @@ func (h *Handler) HandleRedirectToOriginalLink(c *gin.Context) {
 		return
 	}
 
+	// Get the original URL based on the short code
 	originalURL, err := h.service.GetOriginalURL(c, shortCode)
 	if err != nil {
 		c.String(http.StatusNotFound, "No original URL exists for the given short code: %v", err)

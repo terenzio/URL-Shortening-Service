@@ -11,6 +11,7 @@ import (
 	"github.com/terenzio/URL-Shortening-Service/domain"
 )
 
+// TestURLRepository_Store tests the Store method of URLRepository
 func TestURLRepository_Store(t *testing.T) {
 	// Setup a mini Redis server
 	mr, err := miniredis.Run()
@@ -75,6 +76,7 @@ func TestURLRepository_Store(t *testing.T) {
 	}
 }
 
+// TestURLRepository_FindByShortCode tests the FindByShortCode method of URLRepository
 func TestURLRepository_FindByShortCode(t *testing.T) {
 	// Setup a mini Redis server
 	mr, err := miniredis.Run()
@@ -136,6 +138,7 @@ func TestURLRepository_FindByShortCode(t *testing.T) {
 	}
 }
 
+// TestURLRepository_IsUnique tests the IsUnique method of URLRepository
 func TestURLRepository_IsUnique(t *testing.T) {
 	// Setup a mini Redis server
 	mr, err := miniredis.Run()
@@ -180,6 +183,7 @@ func TestURLRepository_IsUnique(t *testing.T) {
 	}
 }
 
+// TestURLRepository_FetchAll tests the FetchAll method of URLRepository
 func TestURLRepository_FetchAll(t *testing.T) {
 	// Setup a mini Redis server
 	mr, err := miniredis.Run()

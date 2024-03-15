@@ -1,4 +1,4 @@
-# URL Shortening Service
+# URL Shortening Service by Terence Liu for TSMC
 
 - This URL Shortening Service is a modern web application designed to create short URLs from longer ones, making it easier to share links online. 
 - Built with Go and the Gin web framework, it leverages the Domain-Driven Design (DDD) approach for clarity, maintainability, and scalability. 
@@ -36,9 +36,9 @@ This method balances efficiency with the guarantee of uniqueness, allowing the s
 - **Bandwidth Estimates: 100:1 read to write ratio**
   - Incoming read data = 200 new URLs per second * 0.5 KB = 100 KB per second
   - Outgoing write data = 20 000 redirections per second * 0.5 KB = 10 MB per second
-- **Memory Estimates: 1% of the total URLs are accessed per day**
+- **Memory Estimates: Based on the Pareto Principle 20% of the total URLs are accessed per day**
   - 20k redirections per second * 3600 seconds * 24 hours =~ 1.7 billion redirections per day
-  - Assume we need to cache 20% of the daily redirections, which will be 0.2 * 1.7 billion * 0.5 KB =~ 170 GB
+  - Following the Pareto Principle we need to cache 20% of the daily redirections, this will lead to 0.2 * 1.7 billion * 0.5 KB =~ 170 GB of memory usage
 
 
 ## Architecture Philosophy: Domain-Driven Design (DDD)
@@ -64,22 +64,23 @@ The project is organized into several layers according to DDD principles:
 
 To run the URL Shortening Service locally:
 
-1. Ensure Go and Redis are installed on your system.
+1. Ensure Go 1.20+ and Redis are installed on your system. 
    ```
-   brew install go@1.20
-   brew install redis
-   redis-server
+   // For Mac users:
+    > brew install go@1.20
+    > brew install redis
+    > redis-server
    ```
 2. Clone the repository and navigate to the project directory.
 3. Install dependencies:
    ```
-   go mod tidy
+    > go mod tidy
    ```
 4. Start the server:
    ```
-   go run main.go
+    > go run main.go
    ```
-   Here is a screenshot of the server running:
+   Here is a screenshot of the GIN server running on Port 9000:
    ![screen shot of server running](https://github.com/terenzio/URL-Shortening-Service/blob/main/screenshots/GinServer_ScreenShot.png?raw=true)
 
 ## API Endpoints

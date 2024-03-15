@@ -8,10 +8,9 @@ import (
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/terenzio/URL-Shortening-Service/application"
+	"github.com/terenzio/URL-Shortening-Service/docs"
 	urlHandler "github.com/terenzio/URL-Shortening-Service/infrastructure/http"
 	redisRepo "github.com/terenzio/URL-Shortening-Service/infrastructure/redis"
-
-	docs "github.com/terenzio/URL-Shortening-Service/docs"
 )
 
 // @title          URL Shortening Service

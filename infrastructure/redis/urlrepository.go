@@ -64,6 +64,8 @@ func (r *URLRepository) IsUnique(ctx context.Context, shortCode string) bool {
 }
 
 // FetchAll retrieves all URLs from Redis.
+// It uses the SCAN command to iterate over all keys with the "short:" prefix.
+// The original URL and expiry are retrieved for each short code.
 func (r *URLRepository) FetchAll(ctx context.Context) ([]domain.URL, error) {
 	var urls []domain.URL
 	iter := r.client.Scan(ctx, 0, "short:*", 0).Iterator()
