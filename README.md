@@ -87,61 +87,69 @@ To run the URL Shortening Service locally:
 The service will be available at `http://localhost:9000`. Use the following API endpoints and tools to interact with the system:
 
 1. **Add a URL:**
-   ```
-   curl --location 'http://localhost:9000/api/v1/url/add' \
-   --header 'Content-Type: application/json' \
-   --data '{
-       "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers.html"
-   }'
-   ```
-    The response will include the shortened URL.
-   ```
-   {
-       "shortened_url": "http://localhost:9000/api/v1/redirect/3EMjtvea"
-   }
-   ```
+   - Functional Requirement 1: A client (user) enters a long URL into the system and the system returns a shortened
+      URL
+   - Functional Requirement 3: The short URL should be collision-free
+   - Functional Requirement 4: The short URL should be non-predictable
+      ```
+      curl --location 'http://localhost:9000/api/v1/url/add' \
+      --header 'Content-Type: application/json' \
+      --data '{
+          "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers.html"
+      }'
+      ```
+       The response will include the shortened URL.
+      ```
+      {
+          "shortened_url": "http://localhost:9000/api/v1/redirect/3EMjtvea"
+      }
+      ```
 2. **Add a URL with custom short code and expiry time:**
-   ```
-   curl --location 'http://localhost:9000/api/v1/url/add' \
-   --header 'Content-Type: application/json' \
-   --data '{
-       "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers1.html",
-       "expiry": "2024-04-02T00:00:00Z",
-       "custom_short_code": "abcde1"
-   }'
-   ```
-   The response will include the shortened URL and the customized values.
-    ```
-    {
-        "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers1.html",
-        "expiry": "2024-04-02T00:00:00Z",
-        "shortened_url": "http://localhost:9000/api/v1/redirect/abcde1"
-    }
-    ```
+   - Functional Requirement 5: The client should be able to choose a custom short URL
+   - Functional Requirement 7: The client optionally defines the expiry time of the short URL
+      ```
+      curl --location 'http://localhost:9000/api/v1/url/add' \
+      --header 'Content-Type: application/json' \
+      --data '{
+          "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers1.html",
+          "expiry": "2024-04-02T00:00:00Z",
+          "custom_short_code": "abcde1"
+      }'
+      ```
+      The response will include the shortened URL and the customized values.
+       ```
+       {
+           "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers1.html",
+           "expiry": "2024-04-02T00:00:00Z",
+           "shortened_url": "http://localhost:9000/api/v1/redirect/abcde1"
+       }
+       ```
 
 3. **Redirect to Original URL:**
-   ```
-   curl --location 'localhost:9000/api/v1/redirect/3EMjtvea'
-   ```
+    - Functional Requirement 6: The client visiting the short URL must be redirected to the original long URL
+      ```
+      curl --location 'localhost:9000/api/v1/redirect/3EMjtvea'
+      ```
 4. **Display all the mapped URLs:** 
-   ```
-   curl --location 'http://localhost:9000/api/v1/url/display'
-   ```
-   The response will include the shortened code for easy readibility.
-   ```
-   [
-     {
-       "short_code": "2LzboGMR",
-       "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers.html",
-       "expiry": "2024-06-02T07:59:59.860239+08:00"
-     },
-     {
-        "short_code": "4uODYpIv",
-        "original_url": "https://www.tsmc.com/chinese/aboutTSMC/company_profile",
-        "expiry": "2024-05-02T07:59:59.861373+08:00"
-     }
-   ]
-   ```
+   - Functional Requirement 2: The short URL should be readable
+      ```
+      curl --location 'http://localhost:9000/api/v1/url/display'
+      ```
+      The response will include the shortened code for easy readibility.
+      ```
+      [
+        {
+          "short_code": "2LzboGMR",
+          "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers.html",
+          "expiry": "2024-06-02T07:59:59.860239+08:00"
+        },
+        {
+           "short_code": "4uODYpIv",
+           "original_url": "https://www.tsmc.com/chinese/aboutTSMC/company_profile",
+           "expiry": "2024-05-02T07:59:59.861373+08:00"
+        }
+      ]
+      ```
 5. **Swagger API Documentation:**
    - The Swagger API documentation is available at `http://localhost:9000/swagger/index.html`
    - ![screen shot of swagger](https://github.com/terenzio/URL-Shortening-Service/blob/main/screenshots/Swagger_ShortScreenShot.png?raw=true)
