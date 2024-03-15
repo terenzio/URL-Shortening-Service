@@ -67,7 +67,7 @@ const docTemplate = `{
         },
         "/url/add": {
             "post": {
-                "description": "NOTE 1: In the JSON body, the \"original_url\" should contain proper formatting with either http or https. Example: https://www.google.com.\nNOTE 2: In the JSON body, the \"expiry\" date is optional, with the default expiration set to 30 days from now. The expiry time can be customized like this example: 2024-04-02T00:00:00Z",
+                "description": "NOTE 1: In the JSON body, the \"original_url\" should contain proper formatting with either http or https. Example: https://www.google.com.\nNOTE 2: In the JSON body, the \"expiry\" date is optional, with the default expiration set to 30 days from now. The expiry time can be customized like this example: 2024-04-02T00:00:00Z.\nNOTE 3: In the JSON body, the \"custom_short_code\" is also optional. A unique custom short code can be set for the shortened URL.",
                 "consumes": [
                     "application/json"
                 ],
@@ -80,7 +80,7 @@ const docTemplate = `{
                 "summary": "Creates a shortened link for the given original URL.",
                 "parameters": [
                     {
-                        "description": "Original URL and Expiry Time (optional)",
+                        "description": "Original URL, Expiry Time (optional), Custom Short Code (optional)",
                         "name": "original_url",
                         "in": "body",
                         "required": true,
@@ -124,6 +124,12 @@ const docTemplate = `{
         "domain.AddSuccessResponse": {
             "type": "object",
             "properties": {
+                "expiry": {
+                    "type": "string"
+                },
+                "original_url": {
+                    "type": "string"
+                },
                 "shortened_url": {
                     "type": "string"
                 }
@@ -132,6 +138,9 @@ const docTemplate = `{
         "domain.AddURLRequest": {
             "type": "object",
             "properties": {
+                "custom_short_code": {
+                    "type": "string"
+                },
                 "expiry": {
                     "type": "string"
                 },
@@ -143,6 +152,9 @@ const docTemplate = `{
         "domain.URLMapping": {
             "type": "object",
             "properties": {
+                "expiry": {
+                    "type": "string"
+                },
                 "original_url": {
                     "type": "string"
                 },

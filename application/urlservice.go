@@ -35,18 +35,20 @@ func (s *URLService) ShortenURL(ctx context.Context, originalURL string, expiryT
 		sequence++
 	}
 
-	url := domain.URL{
-		ShortCode:   shortCode,
-		OriginalURL: originalURL,
-		Expiry:      expiryTime,
-	}
+	//s2, err := s.StoreURL(ctx, url)
+	//if err != nil {
+	//	return s2, err
+	//}
 
-	// Store the URL with the generated short code in the repository
+	return shortCode, nil
+}
+
+// StoreURL stores the given URL in the repository.
+func (s *URLService) StoreURL(ctx context.Context, url domain.URL) (string, error) {
 	if err := s.repo.Store(ctx, url); err != nil {
 		return "", fmt.Errorf("failed to store URL: %w", err)
 	}
-
-	return shortCode, nil
+	return "", nil
 }
 
 // generateShortCode creates a unique short code for the given URL.
@@ -114,4 +116,9 @@ func (s *URLService) GetOriginalURL(ctx context.Context, shortCode string) (stri
 		return "", fmt.Errorf("failed to find URL by short code: %w", err)
 	}
 	return url.OriginalURL, nil
+}
+
+// IsUniqueShortCode checks if the given short code is unique by calling the repository.
+func (s *URLService) IsUniqueShortCode(ctx context.Context, shortCode string) bool {
+	return s.repo.IsUnique(ctx, shortCode)
 }

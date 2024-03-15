@@ -2,11 +2,17 @@ basePath: /api/v1
 definitions:
   domain.AddSuccessResponse:
     properties:
+      expiry:
+        type: string
+      original_url:
+        type: string
       shortened_url:
         type: string
     type: object
   domain.AddURLRequest:
     properties:
+      custom_short_code:
+        type: string
       expiry:
         type: string
       original_url:
@@ -14,6 +20,8 @@ definitions:
     type: object
   domain.URLMapping:
     properties:
+      expiry:
+        type: string
       original_url:
         type: string
       short_code:
@@ -71,9 +79,10 @@ paths:
       - application/json
       description: |-
         NOTE 1: In the JSON body, the "original_url" should contain proper formatting with either http or https. Example: https://www.google.com.
-        NOTE 2: In the JSON body, the "expiry" date is optional, with the default expiration set to 30 days from now. The expiry time can be customized like this example: 2024-04-02T00:00:00Z
+        NOTE 2: In the JSON body, the "expiry" date is optional, with the default expiration set to 30 days from now. The expiry time can be customized like this example: 2024-04-02T00:00:00Z.
+        NOTE 3: In the JSON body, the "custom_short_code" is also optional. A unique custom short code can be set for the shortened URL.
       parameters:
-      - description: Original URL and Expiry Time (optional)
+      - description: Original URL, Expiry Time (optional), Custom Short Code (optional)
         in: body
         name: original_url
         required: true
