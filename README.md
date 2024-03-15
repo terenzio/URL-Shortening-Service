@@ -15,9 +15,35 @@
 6. The client visiting the short URL must be redirected to the original long URL [See API Endpoints](#api-endpoints) (Point 3)
 7. The client optionally defines the expiry time of the short URL [See API Endpoints](#api-endpoints) (Point 2)
 
-## Domain-Driven Design (DDD)
+##  Technical Design: Avoiding Collisions
 
-- DDD was adopted to align the development practices with the requirements closely. 
+Collision avoidance in URL shortening is crucial for ensuring each long URL is associated with a unique short code. A two-fold strategy was implemented to achieve this:
+
+- **Hashing and Encoding:** Initially, the system generate a candidate short code by hashing the original URL and encoding the hash into a Base62 string. This process ensures that most URLs will naturally map to unique short codes.
+- **Uniqueness Check:** Before finalizing a short code, the system also checked its uniqueness within the Redis data store. If a collision is detected (the generated short code already exists), the system applied a sequence number to the original URL and regenerate the hash. This process repeats until a unique short code is found.
+
+This method balances efficiency with the guarantee of uniqueness, allowing the service to scale while maintaining integrity.
+
+## System Analysis:
+
+- **Traffic Estimates: 500 Million new URLs per month with 100:1 read/write ratio**
+  - New URLs shortening per second = 500 million / (30 days * 24 hours * 60 minutes * 60 seconds) =~ 200 URLs per second
+  - URLs redirection per second = 100 read ratio * 200 URLs per second = 20K redirections per second
+- **Storage Estimates: for 5 years** 
+  - 500 Million new URLs per month which is kept for 5 years
+  - Total number of objects = 500 million * 5 years * 12 months = 30 billion
+  - If we assume 0.5 KB per object, the total storage required = 30 billion * 0.5 KB = 15TB
+- **Bandwidth Estimates: 100:1 read to write ratio**
+  - Incoming read data = 200 new URLs per second * 0.5 KB = 100 KB per second
+  - Outgoing write data = 20 000 redirections per second * 0.5 KB = 10 MB per second
+- **Memory Estimates: 1% of the total URLs are accessed per day**
+  - 20k redirections per second * 3600 seconds * 24 hours =~ 1.7 billion redirections per day
+  - Assume we need to cache 20% of the daily redirections, which will be 0.2 * 1.7 billion * 0.5 KB =~ 170 GB
+
+
+## Architecture Philosophy: Domain-Driven Design (DDD)
+
+- DDD was adopted to align the development practices with the requirements closely.
 - This design philosophy emphasizes placing the project's primary focus on the core domain and domain logic, then builds outwards to application logic and infrastructure.
 
 ### Structure
@@ -33,15 +59,6 @@ The project is organized into several layers according to DDD principles:
 - **Enhanced Modularity:** Separating concerns makes the system easier to understand, develop, and test.
 - **Improved Scalability:** By decoupling core logic from infrastructure, the system can easily adapt to new requirements or technologies.
 - **Focused Business Logic:** DDD helps us stay aligned with business objectives, making our application more effective and adaptable.
-
-## Avoiding Collisions
-
-Collision avoidance in URL shortening is crucial for ensuring each long URL is associated with a unique short code. A two-fold strategy was implemented to achieve this
-
-- **Hashing and Encoding:** Initially, the system generate a candidate short code by hashing the original URL and encoding the hash into a Base62 string. This process ensures that most URLs will naturally map to unique short codes.
-- **Uniqueness Check:** Before finalizing a short code, the system also checked its uniqueness within the Redis data store. If a collision is detected (the generated short code already exists), the system applied a sequence number to the original URL and regenerate the hash. This process repeats until a unique short code is found.
-
-This method balances efficiency with the guarantee of uniqueness, allowing the service to scale while maintaining integrity.
 
 ## Getting Started
 
@@ -74,8 +91,7 @@ The service will be available at `http://localhost:9000`. Use the following API 
    curl --location 'http://localhost:9000/api/v1/url/add' \
    --header 'Content-Type: application/json' \
    --data '{
-   "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers.html",
-   "expiry": "2024-04-02T00:00:00Z"
+       "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers.html"
    }'
    ```
     The response will include the shortened URL.
@@ -97,9 +113,9 @@ The service will be available at `http://localhost:9000`. Use the following API 
    The response will include the shortened URL and the customized values.
     ```
     {
-        "shortened_url": "http://localhost:9000/api/v1/redirect/abcde1",     
+        "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers1.html",
         "expiry": "2024-04-02T00:00:00Z",
-        "original_url": "https://research.tsmc.com/chinese/collaborations/academic/university-centers1.html" 
+        "shortened_url": "http://localhost:9000/api/v1/redirect/abcde1"
     }
     ```
 
@@ -111,7 +127,7 @@ The service will be available at `http://localhost:9000`. Use the following API 
    ```
    curl --location 'http://localhost:9000/api/v1/url/display'
    ```
-   The response will include the shortened URL.
+   The response will include the shortened code for easy readibility.
    ```
    [
      {
