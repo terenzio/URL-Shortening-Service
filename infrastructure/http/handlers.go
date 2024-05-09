@@ -27,6 +27,7 @@ func NewHandler(service *application.URLService) *Handler {
 // @Success 200 {object} urlModel.URLMapping "URL Mappings"
 // @Router /url/display [get]
 func (h *Handler) HandleHomePage(c *gin.Context) {
+
 	urls, err := h.service.FetchAllURLs(c)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Failed to fetch URLs: %v", err)
@@ -42,6 +43,28 @@ func (h *Handler) HandleHomePage(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusOK, urlMappings)
 }
+
+//func (h *Handler) HandleHomePage(testString string) gin.HandlerFunc {
+//	return func(c *gin.Context) {
+//
+//		fmt.Println("Test String: ", testString)
+//		urls, err := h.service.FetchAllURLs(c)
+//		if err != nil {
+//			c.String(http.StatusInternalServerError, "Failed to fetch URLs: %v", err)
+//			return
+//		}
+//
+//		// Convert the URL slice to a URLMapping slice
+//		var urlMappings []urlModel.URLMapping
+//		for _, url := range urls {
+//			// Append the URLMapping to the URLMappings slice
+//			urlMappings = append(urlMappings, urlModel.URLMapping{ShortCode: url.ShortCode, OriginalURL: url.OriginalURL, Expiry: url.Expiry})
+//		}
+//
+//		c.IndentedJSON(http.StatusOK, urlMappings)
+//	}
+//
+//}
 
 // HandleAddLink creates a shortened link for the given original URL.
 // @Summary Creates a shortened link for the given original URL.

@@ -49,6 +49,8 @@ func main() {
 	router.ForwardedByClientIP = true
 	router.SetTrustedProxies([]string{"127.0.0.1"})
 
+	//testString := "Hello, World!"
+
 	// Register routes with their handlers
 	docs.SwaggerInfo.BasePath = "/api/v1"
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
@@ -56,7 +58,9 @@ func main() {
 	{
 		urlPage := v1.Group("/url")
 		{
+			//urlPage.GET("/display", handler.HandleHomePage(testString))
 			urlPage.GET("/display", handler.HandleHomePage)
+
 			urlPage.POST("/add", handler.HandleAddLink)
 		}
 		urlRedirect := v1.Group("/redirect")
