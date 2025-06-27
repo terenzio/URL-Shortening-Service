@@ -17,6 +17,7 @@ import (
 )
 
 // mockURLRepository is a simple mock for url repository used in tests.
+// It allows us to inject custom behavior for each repository method.
 type mockURLRepository struct {
 	StoreFunc           func(ctx context.Context, url urlModel.URL) error
 	FindByShortCodeFunc func(ctx context.Context, shortCode string) (*urlModel.URL, error)
@@ -24,6 +25,7 @@ type mockURLRepository struct {
 	FetchAllFunc        func(ctx context.Context) ([]urlModel.URL, error)
 }
 
+// Store mocks storing a URL in the repository.
 func (m *mockURLRepository) Store(ctx context.Context, url urlModel.URL) error {
 	if m.StoreFunc != nil {
 		return m.StoreFunc(ctx, url)
@@ -31,6 +33,7 @@ func (m *mockURLRepository) Store(ctx context.Context, url urlModel.URL) error {
 	return nil
 }
 
+// FindByShortCode mocks finding a URL by its short code.
 func (m *mockURLRepository) FindByShortCode(ctx context.Context, shortCode string) (*urlModel.URL, error) {
 	if m.FindByShortCodeFunc != nil {
 		return m.FindByShortCodeFunc(ctx, shortCode)
@@ -38,6 +41,7 @@ func (m *mockURLRepository) FindByShortCode(ctx context.Context, shortCode strin
 	return nil, errors.New("not implemented")
 }
 
+// IsUnique mocks checking if a short code is unique.
 func (m *mockURLRepository) IsUnique(ctx context.Context, shortCode string) bool {
 	if m.IsUniqueFunc != nil {
 		return m.IsUniqueFunc(ctx, shortCode)
@@ -45,6 +49,7 @@ func (m *mockURLRepository) IsUnique(ctx context.Context, shortCode string) bool
 	return true
 }
 
+// FetchAll mocks fetching all URLs from the repository.
 func (m *mockURLRepository) FetchAll(ctx context.Context) ([]urlModel.URL, error) {
 	if m.FetchAllFunc != nil {
 		return m.FetchAllFunc(ctx)
@@ -52,10 +57,11 @@ func (m *mockURLRepository) FetchAll(ctx context.Context) ([]urlModel.URL, error
 	return nil, nil
 }
 
-// helper to create test context
+// newTestContext is a helper to create a Gin context and HTTP recorder for testing handlers.
 func newTestContext(method, path string, body []byte) (*gin.Context, *httptest.ResponseRecorder) {
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
+	// Create a new HTTP request with the given method, path, and body
 	req, _ := http.NewRequest(method, path, bytes.NewReader(body))
 	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
@@ -64,9 +70,11 @@ func newTestContext(method, path string, body []byte) (*gin.Context, *httptest.R
 	return c, w
 }
 
+// TestHandleHomePage tests the handler that lists all shortened URLs.
 func TestHandleHomePage(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
+	// Example URL to be returned by the mock
 	expectedURL := urlModel.URL{ShortCode: "abc", OriginalURL: "https://example.com", Expiry: time.Now()}
 
 	tests := []struct {
@@ -96,14 +104,18 @@ func TestHandleHomePage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Create the service and handler with the mock repository
 			service := application.NewURLService(tt.repo)
 			h := NewHandler(service)
 
+			// Create a test context and call the handler
 			c, w := newTestContext(http.MethodGet, "/url/display", nil)
 			h.HandleHomePage(c)
 
+			// Assert the status code
 			assert.Equal(t, tt.expectedStatus, w.Code)
 			if tt.expectBody {
+				// If expecting a body, unmarshal and check the returned data
 				var got []urlModel.URLMapping
 				err := json.Unmarshal(w.Body.Bytes(), &got)
 				assert.NoError(t, err)
@@ -114,6 +126,7 @@ func TestHandleHomePage(t *testing.T) {
 	}
 }
 
+// TestHandleAddLink tests the handler that creates a new shortened URL.
 func TestHandleAddLink(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -122,6 +135,7 @@ func TestHandleAddLink(t *testing.T) {
 		body           []byte
 		repoSetup      func(stored *urlModel.URL) *mockURLRepository
 		expectedStatus int
+		// validate is a function used in table-driven tests to perform custom assertions on the HTTP response and the stored URL after the handler is called.
 		validate       func(t *testing.T, w *httptest.ResponseRecorder, stored urlModel.URL)
 	}{
 		{
@@ -164,6 +178,7 @@ func TestHandleAddLink(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder, stored urlModel.URL) {
+				// Check that the stored short code matches the custom code
 				assert.Equal(t, "mycode", stored.ShortCode)
 				var resp map[string]interface{}
 				err := json.Unmarshal(w.Body.Bytes(), &resp)
@@ -185,6 +200,7 @@ func TestHandleAddLink(t *testing.T) {
 			},
 			expectedStatus: http.StatusOK,
 			validate: func(t *testing.T, w *httptest.ResponseRecorder, stored urlModel.URL) {
+				// Check that the response contains the generated short code
 				var resp map[string]interface{}
 				err := json.Unmarshal(w.Body.Bytes(), &resp)
 				assert.NoError(t, err)
@@ -200,9 +216,11 @@ func TestHandleAddLink(t *testing.T) {
 			service := application.NewURLService(repo)
 			h := NewHandler(service)
 
+			// Create a test context and call the handler
 			c, w := newTestContext(http.MethodPost, "/url/add", tt.body)
 			h.HandleAddLink(c)
 
+			// Assert the status code
 			assert.Equal(t, tt.expectedStatus, w.Code)
 			if tt.validate != nil {
 				tt.validate(t, w, stored)
@@ -211,6 +229,7 @@ func TestHandleAddLink(t *testing.T) {
 	}
 }
 
+// TestHandleRedirectToOriginalLink tests the handler that redirects to the original URL given a short code.
 func TestHandleRedirectToOriginalLink(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
@@ -259,12 +278,14 @@ func TestHandleRedirectToOriginalLink(t *testing.T) {
 			service := application.NewURLService(tt.repo)
 			h := NewHandler(service)
 
+			// Create a test context and set the shortcode param if needed
 			c, w := newTestContext(http.MethodGet, tt.path, nil)
 			if tt.shortcode != "" {
 				c.Params = gin.Params{{Key: "shortcode", Value: tt.shortcode}}
 			}
 			h.HandleRedirectToOriginalLink(c)
 
+			// Assert the status code and redirect location if expected
 			assert.Equal(t, tt.expectedStatus, w.Code)
 			if tt.expectedLoc != "" {
 				assert.Equal(t, tt.expectedLoc, w.Header().Get("Location"))
