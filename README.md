@@ -1,4 +1,4 @@
-# URL Shortening Service by Terence Liu for TSMC
+# URL Shortening Service by Terence Liu 
 
 - This URL Shortening Service is a modern web application designed to create short URLs from longer ones, making it easier to share links online. 
 - Built with Go and the Gin web framework, it leverages the Domain-Driven Design (DDD) approach for clarity, maintainability, and scalability. 
